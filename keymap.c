@@ -23,6 +23,10 @@ enum sofle_layers { _QWERTY = 0, _LOWER, _RAISE, _ADJUST, _NUMPAD };
 
 enum custom_keycodes { KC_LOWER = SAFE_RANGE, KC_RAISE };
 
+#ifdef RGB_MATRIX_ENABLE
+static bool rgb_adjust_dirty = false;
+#endif
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
      * QWERTY
@@ -190,82 +194,131 @@ static const char *layer_label(void) {
     }
 }
 
-// Write 0-255 without leading zeroes and without pulling in printf.
-static void oled_write_u8(uint8_t value) {
-    char    buf[4];
-    uint8_t n = 0;
-    if (value >= 100) {
-        buf[n++] = '0' + value / 100;
-    }
-    if (value >= 10) {
-        buf[n++] = '0' + (value / 10) % 10;
-    }
-    buf[n++] = '0' + value % 10;
-    buf[n]   = '\0';
-    oled_write(buf, false);
+// QMK renders one dirty OLED block per update. Clearing the buffer every frame
+// keeps marking every block dirty and starves the later ones, which shows up as
+// garbage at the bottom edge. Instead we pad every line to full width and let
+// the dirty-block diff update only what changed.
+static char    oled_line_buf[24];
+static uint8_t oled_line_pos;
+
+static void oled_line_begin(void) {
+    memset(oled_line_buf, ' ', sizeof(oled_line_buf));
+    oled_line_pos = 0;
 }
 
-#ifdef RGB_MATRIX_ENABLE
-static void oled_bar(uint8_t value, uint8_t max, uint8_t width) {
-    uint8_t filled = (uint16_t)value * width / max;
-    for (uint8_t i = 0; i < width; i++) {
-        oled_write_char(i < filled ? '#' : '-', false);
+static void oled_line_puts(const char *text) {
+    char c;
+    while ((c = (char)pgm_read_byte(text++)) != '\0' && oled_line_pos < sizeof(oled_line_buf)) {
+        oled_line_buf[oled_line_pos++] = c;
     }
 }
-#endif
+
+static void oled_line_putnum(uint8_t value) {
+    char    digits[4];
+    uint8_t n = 0;
+    if (value >= 100) {
+        digits[n++] = '0' + value / 100;
+    }
+    if (value >= 10) {
+        digits[n++] = '0' + (value / 10) % 10;
+    }
+    digits[n++] = '0' + value % 10;
+    for (uint8_t i = 0; i < n && oled_line_pos < sizeof(oled_line_buf); i++) {
+        oled_line_buf[oled_line_pos++] = digits[i];
+    }
+}
+
+static void oled_line_flush(uint8_t line, uint8_t width) {
+    oled_set_cursor(0, line);
+    for (uint8_t i = 0; i < width; i++) {
+        oled_write_char(oled_line_buf[i], false);
+    }
+}
 
 // Master half: vertical 32x128 status panel.
 static void print_master_status(void) {
-    oled_write_ln_P(PSTR("RORS"), false);
-    oled_write_ln_P(PSTR("----"), false);
-    oled_write_ln_P(PSTR("LYR"), false);
-    oled_write_ln_P(layer_label(), false);
-    oled_write_ln_P(PSTR(""), false);
+    const uint8_t width = oled_max_chars();
 
+    oled_line_begin();
+    oled_line_puts(PSTR("RORS"));
+    oled_line_flush(0, width);
+
+    oled_line_begin();
+    oled_line_puts(PSTR("----"));
+    oled_line_flush(1, width);
+
+    oled_line_begin();
+    oled_line_puts(PSTR("LYR"));
+    oled_line_flush(2, width);
+
+    oled_line_begin();
+    oled_line_puts(layer_label());
+    oled_line_flush(3, width);
+
+    oled_line_begin();
     uint8_t mods = get_mods();
     if (mods & MOD_MASK_SHIFT) {
-        oled_write_ln_P(PSTR("SFT"), false);
+        oled_line_puts(PSTR("S"));
     }
     if (mods & MOD_MASK_CTRL) {
-        oled_write_ln_P(PSTR("CTL"), false);
+        oled_line_puts(PSTR("C"));
     }
     if (mods & MOD_MASK_ALT) {
-        oled_write_ln_P(PSTR("ALT"), false);
+        oled_line_puts(PSTR("A"));
     }
     if (mods & MOD_MASK_GUI) {
-        oled_write_ln_P(PSTR("GUI"), false);
+        oled_line_puts(PSTR("G"));
     }
+    oled_line_flush(5, width);
 
 #ifdef CAPS_WORD_ENABLE
+    oled_line_begin();
     if (is_caps_word_on()) {
-        oled_write_ln_P(PSTR("CW ON"), false);
+        oled_line_puts(PSTR("CW ON"));
     }
+    oled_line_flush(7, width);
 #endif
 
 #ifdef WPM_ENABLE
-    oled_write_ln_P(PSTR(""), false);
-    oled_write_ln_P(PSTR("WPM"), false);
-    oled_write_u8(get_current_wpm());
-    oled_write_P(PSTR("\n"), false);
+    oled_line_begin();
+    oled_line_puts(PSTR("WPM"));
+    oled_line_flush(9, width);
+
+    oled_line_begin();
+    oled_line_putnum(get_current_wpm());
+    oled_line_flush(10, width);
 #endif
 }
 
 // Slave half: horizontal 128x32 panel.
 static void print_slave_panel(void) {
-    oled_write_P(PSTR("    SOFLE RGB\n"), false);
-    oled_write_P(PSTR("LAYER "), false);
-    oled_write_ln_P(layer_label(), false);
+    const uint8_t width = oled_max_chars();
+
+    oled_line_begin();
+    oled_line_puts(PSTR("    SOFLE RGB"));
+    oled_line_flush(0, width);
+
+    oled_line_begin();
+    oled_line_puts(PSTR("LAYER "));
+    oled_line_puts(layer_label());
+    oled_line_flush(1, width);
 
 #ifdef RGB_MATRIX_ENABLE
-    oled_write_P(PSTR("FX "), false);
-    oled_write_u8(rgb_matrix_get_mode());
-    oled_write_P(PSTR("  HUE "), false);
-    oled_write_u8(rgb_matrix_get_hue());
-    oled_write_P(PSTR("\n"), false);
-    oled_bar(rgb_matrix_get_hue(), 255, 12);
-    oled_write_P(PSTR(" V"), false);
-    oled_write_u8(rgb_matrix_get_val());
-    oled_write_P(PSTR("\n"), false);
+    oled_line_begin();
+    oled_line_puts(PSTR("FX "));
+    oled_line_putnum(rgb_matrix_get_mode());
+    oled_line_puts(PSTR("  HUE "));
+    oled_line_putnum(rgb_matrix_get_hue());
+    oled_line_flush(2, width);
+
+    oled_line_begin();
+    uint8_t filled = (uint16_t)rgb_matrix_get_hue() * 12 / 255;
+    for (uint8_t i = 0; i < 12; i++) {
+        oled_line_buf[oled_line_pos++] = (i < filled) ? '#' : '-';
+    }
+    oled_line_puts(PSTR(" V"));
+    oled_line_putnum(rgb_matrix_get_val());
+    oled_line_flush(3, width);
 #endif
 }
 
@@ -277,9 +330,6 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 }
 
 bool oled_task_user(void) {
-    // Clear every frame so shorter strings do not leave leftover pixels.
-    oled_clear();
-
     if (is_keyboard_master()) {
         print_master_status();
         return false;
@@ -296,12 +346,25 @@ bool oled_task_user(void) {
             return false;
         }
         splash_done = true;
+        // Wipe the logo once before drawing the panel.
+        oled_clear();
     }
 
     print_slave_panel();
     return false;
 }
 
+#endif
+
+#ifdef RGB_MATRIX_ENABLE
+// Encoder changes stay in RAM while Adjust is held; persist them once when the
+// layer is released so we do not hammer the EEPROM on every detent.
+static void rgb_save_adjust_if_done(void) {
+    if (rgb_adjust_dirty && get_highest_layer(layer_state) != _ADJUST) {
+        rgb_matrix_sethsv(rgb_matrix_get_hue(), rgb_matrix_get_sat(), rgb_matrix_get_val());
+        rgb_adjust_dirty = false;
+    }
+}
 #endif
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -313,6 +376,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 layer_off(_LOWER);
                 update_tri_layer(_LOWER, _RAISE, _ADJUST);
+#ifdef RGB_MATRIX_ENABLE
+                rgb_save_adjust_if_done();
+#endif
             }
             return false;
         case KC_RAISE:
@@ -322,6 +388,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             } else {
                 layer_off(_RAISE);
                 update_tri_layer(_LOWER, _RAISE, _ADJUST);
+#ifdef RGB_MATRIX_ENABLE
+                rgb_save_adjust_if_done();
+#endif
             }
             return false;
     }
@@ -357,11 +426,16 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
                 }
                 break;
             case _ADJUST:
+#ifdef RGB_MATRIX_ENABLE
+                // tap_code16() cannot send quantum keycodes (UG_*); it would
+                // only send the low byte (0x7823 -> KC_6, 0x7827 -> KC_0).
                 if (clockwise) {
-                    tap_code16(UG_HUEU);
+                    rgb_matrix_increase_hue_noeeprom();
                 } else {
-                    tap_code16(UG_HUED);
+                    rgb_matrix_decrease_hue_noeeprom();
                 }
+                rgb_adjust_dirty = true;
+#endif
                 break;
             default: // _QWERTY
                 if (clockwise) {
@@ -398,11 +472,14 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
                 }
                 break;
             case _ADJUST:
+#ifdef RGB_MATRIX_ENABLE
                 if (clockwise) {
-                    tap_code16(UG_VALU);
+                    rgb_matrix_increase_val_noeeprom();
                 } else {
-                    tap_code16(UG_VALD);
+                    rgb_matrix_decrease_val_noeeprom();
                 }
+                rgb_adjust_dirty = true;
+#endif
                 break;
             default: // _QWERTY
                 if (clockwise) {
@@ -421,11 +498,6 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 #endif
 
 #ifdef RGB_MATRIX_ENABLE
-
-// Theme colour received from Omarchy. Kept separate from rgb_matrix_get_hsv()
-// so the layer markers keep the theme accent even with animated effects.
-static HSV  theme_hsv       = {0, 0, 0};
-static bool theme_hsv_valid = false;
 
 typedef struct {
     uint8_t row;
@@ -467,7 +539,7 @@ bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
             return false;
     }
 
-    HSV     base = theme_hsv_valid ? theme_hsv : rgb_matrix_get_hsv();
+    HSV     base = rgb_matrix_get_hsv();
     uint8_t val  = rgb_matrix_get_val();
     uint8_t dim  = val / 6;
 
@@ -510,14 +582,18 @@ void raw_hid_receive(uint8_t *data, uint8_t length) {
 
     uint8_t current_mode       = rgb_matrix_get_mode();
     uint8_t current_brightness = rgb_matrix_get_val();
-    rgb_matrix_sethsv_noeeprom(data[1], data[2], current_brightness);
+    HSV     current_hsv        = rgb_matrix_get_hsv();
+
+    // Persist the theme accent so a power cycle keeps the last colour instead
+    // of falling back to QMK's default red. The host resends the same packet
+    // on every theme change, so only write the EEPROM when it actually differs.
+    if (current_hsv.h != data[1] || current_hsv.s != data[2]) {
+        rgb_matrix_sethsv(data[1], data[2], current_brightness);
+    } else {
+        rgb_matrix_sethsv_noeeprom(data[1], data[2], current_brightness);
+    }
     // Re-render immediately even when the selected effect is a static color.
     rgb_matrix_mode_noeeprom(current_mode);
-
-#ifdef RGB_MATRIX_ENABLE
-    theme_hsv       = (HSV){data[1], data[2], current_brightness};
-    theme_hsv_valid = true;
-#endif
 
     raw_hid_send(data, length);
 }
