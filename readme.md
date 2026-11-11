@@ -2,6 +2,16 @@
 
 Keymap personal para Sofle RGB (QMK, `sofle/rev1`) pensado para Omarchy y trabajo de código.
 
+## Estructura
+
+| Ruta | Qué es |
+|---|---|
+| `keymap.c` | capas, símbolos, encoders, indicadores RGB, paneles OLED y Raw HID |
+| `config.h` | ajustes del teclado (split, encoder, RGB Matrix, Raw HID) |
+| `rules.mk` | módulos de QMK (OLED, encoder, Caps Word, WPM, Raw HID) |
+| `host/` | integración con Omarchy: helper Raw HID, hook de tema y wrapper `qmk_hid` |
+| `readme.md` | esta guía de uso y réplica |
+
 ## Capas
 
 | Capa | Cómo se activa |
@@ -172,3 +182,83 @@ Para añadir código hay que liberar espacio en `config.h`. El candidato natural
 ```
 
 Dejando sólo `ENABLE_RGB_MATRIX_SOLID_REACTIVE_SIMPLE` se recuperan varios cientos de bytes sin cambiar el efecto que usas a diario.
+
+## Réplica de la integración con Omarchy
+
+El teclado recibe el color de acento del tema por Raw HID. En el host hay tres piezas, todas en `host/`:
+
+| Archivo | Destino |
+|---|---|
+| `host/omarchy-sofle-rgb.c` | helper compilado a `~/.local/bin/omarchy-sofle-rgb` |
+| `host/theme-set-hook.sh` | `~/.config/omarchy/hooks/theme-set.d/theme-set-hook.sh` |
+| `host/qmk_hid` | `/usr/local/bin/qmk_hid` (wrapper, requiere sudo) |
+
+### 1. Dependencias
+
+```bash
+sudo pacman -S --needed gcc hidapi
+```
+
+### 2. Compilar el helper
+
+```bash
+mkdir -p ~/.local/bin
+gcc -O2 -o ~/.local/bin/omarchy-sofle-rgb host/omarchy-sofle-rgb.c \
+  $(pkg-config --cflags --libs hidapi-hidraw) -lm
+```
+
+Prueba directa con el teclado conectado:
+
+```bash
+~/.local/bin/omarchy-sofle-rgb '#7AA2F7'
+```
+
+Si no imprime error, el acento se aplica al instante y queda guardado en la EEPROM del teclado.
+
+### 3. Instalar el hook de tema
+
+```bash
+install -Dm755 host/theme-set-hook.sh \
+  ~/.config/omarchy/hooks/theme-set.d/theme-set-hook.sh
+```
+
+El hook lee `~/.local/state/omarchy/current/theme/colors.toml`, extrae la línea `accent = "#RRGGBB"` y llama al helper. Se ejecuta en cada `omarchy-theme-set`, así que el teclado sigue el tema **sin polkit ni sudo**.
+
+### 4. Wrapper `qmk_hid` (recomendado)
+
+Omarchy incluye un retinte VIA para Framework 16 (`omarchy-theme-set-keyboard-f16`) que sondea `qmk_hid` en cada cambio de tema. En un Sofle puede colgarse o dar errores. El wrapper:
+
+- Ignora la llamada si el DMI no es Framework.
+- Limita cualquier `qmk_hid` manual a 2 segundos.
+
+```bash
+sudo install -m755 host/qmk_hid /usr/local/bin/qmk_hid
+```
+
+### 5. Permisos de hidraw
+
+El helper abre `/dev/hidraw*`. En Omarchy/systemd-logind el usuario de la sesión recibe la ACL de `uaccess`, así que normalmente funciona sin sudo. Si al ejecutarlo dice `could not be opened`, añade la regla:
+
+```bash
+sudo tee /etc/udev/rules.d/99-sofle-raw-hid.rules >/dev/null <<'EOF'
+KERNEL=="hidraw*", ATTRS{idVendor}=="fc32", ATTRS{idProduct}=="0287", MODE="0660", TAG+="uaccess"
+EOF
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+### 6. Protocolo
+
+- VID/PID `fc32:0287`, Raw HID usage page `0xFF60`, usage `0x61`.
+- Paquete de 32 bytes: `[0xA1, hue, sat, value]`.
+- El firmware ignora el byte de brillo, aplica hue/saturación con el brillo actual y guarda el resultado en EEPROM.
+- El helper espera el eco del paquete para confirmar que el teclado lo procesó.
+
+### 7. Comprobación rápida
+
+```bash
+# Cambia de tema y observa el teclado
+omarchy-theme-set <nombre-del-tema>
+
+# El acento actual del tema
+grep '^accent' ~/.local/state/omarchy/current/theme/colors.toml
+```

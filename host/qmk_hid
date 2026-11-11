@@ -1,0 +1,15 @@
+#!/bin/sh
+# Keep Omarchy's Framework-16 VIA retinter from probing this non-Framework
+# Sofle; the user theme-set hook controls it through its custom Raw HID command.
+# Leave manual qmk_hid calls available, but bound them so a wedged HID read
+# cannot hang a theme change or update.
+parent_command=$(tr '\0' ' ' <"/proc/$PPID/cmdline" 2>/dev/null || true)
+system_vendor=$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null || true)
+case "$parent_command" in
+  *omarchy-theme-set-keyboard-f16*)
+    if [ "$system_vendor" != "Framework" ]; then
+      exit 0
+    fi
+    ;;
+esac
+exec /usr/bin/timeout -k 1 2 /usr/bin/qmk_hid "$@"
