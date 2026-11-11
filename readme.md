@@ -10,6 +10,7 @@ Keymap personal para Sofle RGB (QMK, `sofle/rev1`) pensado para Omarchy y trabaj
 | `config.h` | ajustes del teclado (split, encoder, RGB Matrix, Raw HID) |
 | `rules.mk` | módulos de QMK (OLED, encoder, Caps Word, WPM, Raw HID) |
 | `host/` | integración con Omarchy: helper Raw HID, hook de tema y wrapper `qmk_hid` |
+| `firmware/` | `.hex` precompilado, script de flasheo y checksum |
 | `readme.md` | esta guía de uso y réplica |
 
 ## Capas
@@ -153,6 +154,27 @@ avr-size /tmp/sofle-build/sofle_rev1_elianSofle.elf
 El keymap vive en `~/qmk_firmware/keyboards/sofle/keymaps/elianSofle`, que es un symlink a este repo.
 
 ## Flashear
+
+### Con el firmware precompilado (otro equipo, sin QMK)
+
+El repo incluye `firmware/sofle_rev1_elianSofle.hex` y un script que espera el bootloader:
+
+```bash
+./firmware/flash.sh
+```
+
+Sólo necesitas `avrdude` (`sudo pacman -S avrdude`). Desconecta el TRRS, conecta una sola mitad, ejecuta el script y pulsa **Reset** cuando aparezca la espera. Repite con la otra mitad.
+
+A mano:
+
+```bash
+avrdude -p atmega32u4 -c avr109 -P /dev/ttyACM0 \
+  -U flash:w:firmware/sofle_rev1_elianSofle.hex
+```
+
+Comprueba la integridad con `cd firmware && sha256sum -c SHA256SUMS`.
+
+### Compilando desde el código
 
 El keymap usa `MASTER_LEFT` (no `EE_HANDS`): la mitad izquierda conectada por USB es siempre la maestra y **no hace falta escribir el EEPROM de handedness**. Por eso se flashea con el objetivo `avrdude` normal, que **no toca la configuración guardada** (color, brillo, modo RGB):
 
