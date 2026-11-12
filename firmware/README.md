@@ -23,6 +23,8 @@ Requisitos: `avrdude` (Arch: `sudo pacman -S avrdude`).
    (o mantén `Lower + Raise` y pulsa la tecla superior derecha si tienes las dos mitades unidas por TRRS).
 5. Repite los pasos 1-4 con la otra mitad.
 
+El script verifica que el `/dev/ttyACM*` sea el bootloader Caterina (VID/PID); si no, pide confirmación antes de flashear.
+
 También puedes hacerlo a mano si el bootloader ya está en `/dev/ttyACM0`:
 
 ```bash

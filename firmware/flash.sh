@@ -35,6 +35,20 @@ if [[ -z $dev ]]; then
     exit 1
 fi
 
+# Verify the serial device looks like the ATmega32u4 Caterina bootloader.
+# Flashing another /dev/ttyACM* (e.g. the other half still in firmware) would
+# write the wrong target.
+vid=$(udevadm info -q property -n "$dev" 2>/dev/null | sed -n 's/^ID_VENDOR_ID=//p')
+pid=$(udevadm info -q property -n "$dev" 2>/dev/null | sed -n 's/^ID_MODEL_ID=//p')
+case "${vid,,}:${pid,,}" in
+    2341:0036|1b4f:9203|1b4f:9204|1b4f:9205) ;;
+    *)
+        echo "AVISO: $dev no parece el bootloader Caterina (VID:PID ${vid:-?}:${pid:-?})." >&2
+        read -r -p "¿Flashear igual? [s/N] " answer
+        [[ $answer =~ ^[sS]$ ]] || exit 1
+        ;;
+esac
+
 echo "Flasheando $hex en $dev"
 sleep 2
 avrdude -p atmega32u4 -c avr109 -P "$dev" -U flash:w:"$hex"

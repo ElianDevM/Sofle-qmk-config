@@ -97,9 +97,10 @@ Convención: **horario = siguiente / derecha / arriba / subir**.
 ## RGB sincronizado con el tema de Omarchy
 
 - `config.h` define `RAW_USAGE_PAGE 0xFF60` y `RAW_USAGE_ID 0x61`.
-- El helper `host/omarchy-sofle-rgb.c` envía por Raw HID el paquete `0xA1`, hue, saturación.
+- El helper `host/omarchy-sofle-rgb.c` envía por Raw HID el paquete `[0xA1, hue, sat, value]` (el firmware ignora `value` y conserva el brillo actual).
 - El firmware **ignora el byte de brillo** y conserva el brillo que fijaste con el encoder o las teclas: cambiar de tema nunca lo baja.
 - El color del tema se **guarda en EEPROM** (sólo cuando cambia respecto al actual), así que al apagar y volver a encender se conserva el último acento en vez de volver al rojo por defecto.
+- Con un tema dinámico que cambie el acento muy seguido, cada cambio de H/S escribe EEPROM; QMK tiene wear leveling, pero para paletas que cambian constantemente conviene un debounce en el hook.
 - Los ajustes manuales de tono y brillo se guardan al salir de Adjust, también sin escribir la EEPROM en cada detent.
 - En capas distintas de QWERTY se atenúan los LEDs normales (el efecto sigue visible) y se encienden unos marcadores con el color actual al brillo real. Funciona con color sólido y con animaciones.
 
@@ -250,8 +251,9 @@ El hook lee `~/.local/state/omarchy/current/theme/colors.toml`, extrae la línea
 
 Omarchy incluye un retinte VIA para Framework 16 (`omarchy-theme-set-keyboard-f16`) que sondea `qmk_hid` en cada cambio de tema. En un Sofle puede colgarse o dar errores. El wrapper:
 
-- Ignora la llamada si el DMI no es Framework.
-- Limita cualquier `qmk_hid` manual a 2 segundos.
+- Cuando el proceso padre es `omarchy-theme-set-keyboard-f16` y el DMI no es Framework, devuelve 0 sin sondear el Sofle.
+- Deja pasar las llamadas manuales a `qmk_hid`, pero con un timeout de 2 segundos.
+- Si no tenés `qmk_hid` instalado, el wrapper no es necesario.
 
 ```bash
 sudo install -m755 host/qmk_hid /usr/local/bin/qmk_hid
@@ -259,14 +261,17 @@ sudo install -m755 host/qmk_hid /usr/local/bin/qmk_hid
 
 ### 5. Permisos de hidraw
 
-El helper abre `/dev/hidraw*`. En Omarchy/systemd-logind el usuario de la sesión recibe la ACL de `uaccess`, así que normalmente funciona sin sudo. Si al ejecutarlo dice `could not be opened`, añade la regla:
+El helper abre `/dev/hidraw*`. En muchas sesiones el `uaccess` de systemd-logind le da acceso al usuario, pero no en todas: si al ejecutarlo dice `could not be opened`, usá una regla con grupo explícito (más fiable):
 
 ```bash
-sudo tee /etc/udev/rules.d/99-sofle-raw-hid.rules >/dev/null <<'EOF'
-KERNEL=="hidraw*", ATTRS{idVendor}=="fc32", ATTRS{idProduct}=="0287", MODE="0660", TAG+="uaccess"
+sudo tee /etc/udev/rules.d/99-sofle-raw-hid.rules >/dev/null <<EOF
+KERNEL=="hidraw*", ATTRS{idVendor}=="fc32", ATTRS{idProduct}=="0287", MODE="0660", GROUP="$(id -un)"
 EOF
-sudo udevadm control --reload-rules && sudo udevadm trigger
+sudo udevadm control --reload-rules
+sudo udevadm trigger --action=add --subsystem-match=hidraw
 ```
+
+El nombre del archivo es indistinto. Si preferís `TAG+="uaccess"`, verificá con `getfacl /dev/hidraw*` que el ACL de tu usuario se haya aplicado; si no aparece, usá `GROUP`.
 
 ### 6. Protocolo
 
