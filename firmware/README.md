@@ -3,7 +3,7 @@
 - Archivo: `sofle_rev1_elianSofle.hex`
 - Teclado: `sofle/rev1`
 - Keymap: `elianSofle`
-- Código: el `.hex` incluido es anterior al cambio de Hyper; recompilá para incluirlo.
+- Código: el `.hex` incluido es anterior a los últimos cambios del keymap; recompilá para incluirlos.
 - Tamaño: 28 492 / 28 672 bytes (99,4 %, 180 libres) en el keymap anterior; el nuevo cambia al quitar Caps Word.
 - SHA256: `d6014345f6f4f9552b10ad5931390c128d61208495801033329ea65672081d3f`
 

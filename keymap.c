@@ -108,7 +108,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         //|------+-------+--------+--------+--------+------|                   |--------+-------+--------+--------+--------+---------|
         KC_TRNS, KC_LCBR, KC_RCBR, KC_LBRC, KC_RBRC, KC_ASTR, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
         //|------+-------+--------+--------+--------+------|                   |--------+-------+--------+--------+--------+---------|
-        KC_TRNS, KC_LPRN, KC_RPRN, KC_EQL, KC_PLUS, KC_MINS, KC_HYPR, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
+        KC_TRNS, KC_LPRN, KC_RPRN, KC_EQL, KC_PLUS, KC_MINS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
         KC_TRNS, KC_BSLS, KC_PIPE, KC_LABK, KC_RABK, KC_COLN, KC_QUES, C(KC_S), KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|

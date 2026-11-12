@@ -41,7 +41,7 @@ Cada tecla `LOWER`/`RAISE` se mantiene; al soltarlas se sale de la capa. `ADJUST
           `----------------------------'             '-------''----------------------------'
 ```
 
-- La tecla Caps física (arriba a la izquierda) es **Caps Lock** del sistema. El pulgar izquierdo abre **Herdr** (`Super+Ctrl+Enter`); **Hyper** (`KC_HYPR`) está en RAISE, sobre la `H`.
+- La tecla Caps física (arriba a la izquierda) es **Caps Lock** del sistema. El pulgar izquierdo abre **Herdr** (`Super+Ctrl+Enter`).
 - `WIN` y `Enter` son `GUI_T(KC_ENT)` en ambos pulgares: pulsación corta = Enter, mantener = Super. Así `Super+Enter` funciona desde los dos lados.
 - `Ctrl+Esc` en la A (`LCTL_T(KC_ESC)`).
 
@@ -60,10 +60,10 @@ Cada tecla `LOWER`/`RAISE` se mantiene; al soltarlas se sale de la capa. `ADJUST
 |---|---|---|
 | Números | `~ ! @ # $ %` | `^ & * ( ) _` |
 | QWERTY | `{ } [ ] *` | — |
-| Home | `( ) = + -` | `Hyper` |
+| Home | `( ) = + -` | — |
 | Z | `\ \| < > :` | — |
 
-`Ctrl+X`, `Ctrl+C` y `Ctrl+V` quedan libres: ya no se reasignan. `Tab`, `Ctrl+Esc`, `Shift` y los pulgares pasan transparentes.
+`Ctrl+X`, `Ctrl+C` y `Ctrl+V` quedan libres: ya no se reasignan. `Tab`, `Ctrl+Esc`, `Shift` y los pulgares pasan transparentes. `Shift + -` (Home izquierda) también produce `_`.
 
 ## NUMPAD
 
