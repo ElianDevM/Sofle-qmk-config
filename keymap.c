@@ -31,7 +31,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /*
      * QWERTY
      * ,-------------------------------------------.                  ,-----------------------------------------.
-     * | Compose |  1  |  2  |  3  |  4  |  5  |                  |  6  |  7  |  8  |  9  |  0  | Bspc |
+     * |  Caps   |  1  |  2  |  3  |  4  |  5  |                  |  6  |  7  |  8  |  9  |  0  | Bspc |
      * |--------+------+------+------+------+------|                  |------+------+------+------+------+------|
      * |   TAB  |   Q  |   W  |   E  |   R  |   T  |                  |   Y  |   U  |   I  |   O  |   P  |  `   |
      * |--------+------+------+------+------+------|                  |------+------+------+------+------+------|
@@ -39,7 +39,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * |--------+------+------+------+------+------|Middle |  |Ctrl(F)|------+------+------+------+------+------|
      * |  LSFT  |   Z  |   X  |   C  |   V  |   B  |-------|  |-------|   N  |   M  |   ,  |   .  |   /  | RSFT |
      * `-----------------------------------------/        /    \      \`-----------------------------------------/'
-     *           |CapsWd| WIN | LAlt |LOWER |  / Space  /       \Enter \ |RAISE |NUMPAD| RAlt | Menu |
+     *           | HYPR | WIN | LAlt |LOWER |  / Space  /       \Enter \ |RAISE |NUMPAD| RAlt | Menu |
      *           |      |     |      |      |/       /          \      \|      |      |      |      |
      *           `----------------------------------'             '------''---------------------------'
      */
@@ -53,7 +53,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
         KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, MS_BTN3, C(KC_F), KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_RSFT,
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
-        CW_TOGG, GUI_T(KC_ENT), KC_LALT, KC_LOWER, KC_SPC, GUI_T(KC_ENT), KC_RAISE, MO(_NUMPAD), KC_RALT, KC_APP
+        KC_HYPR, GUI_T(KC_ENT), KC_LALT, KC_LOWER, KC_SPC, GUI_T(KC_ENT), KC_RAISE, MO(_NUMPAD), KC_RALT, KC_APP
         //            \--------+--------+--------+---------+-------|   |--------+---------+--------+---------+-------/
         ),
 
@@ -270,14 +270,6 @@ static void print_master_status(void) {
         oled_line_puts(PSTR("G"));
     }
     oled_line_flush(5, width);
-
-#ifdef CAPS_WORD_ENABLE
-    oled_line_begin();
-    if (is_caps_word_on()) {
-        oled_line_puts(PSTR("CW ON"));
-    }
-    oled_line_flush(7, width);
-#endif
 
 #ifdef WPM_ENABLE
     oled_line_begin();

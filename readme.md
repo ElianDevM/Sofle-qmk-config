@@ -29,7 +29,7 @@ Cada tecla `LOWER`/`RAISE` se mantiene; al soltarlas se sale de la capa. `ADJUST
 
 ```
 ,-------------------------------------------.                  ,-----------------------------------------.
-| Compose |  1  |  2  |  3  |  4  |  5  |                  |  6  |  7  |  8  |  9  |  0  | Bspc |
+|  Caps   |  1  |  2  |  3  |  4  |  5  |                  |  6  |  7  |  8  |  9  |  0  | Bspc |
 |---------+-----+-----+-----+-----+-----|                  |-----+-----+-----+-----+-----+------|
 |   TAB   |  Q  |  W  |  E  |  R  |  T  |                  |  Y  |  U  |  I  |  O  |  P  |  `   |
 |---------+-----+-----+-----+-----+-----|                  |-----+-----+-----+-----+-----+------|
@@ -37,11 +37,11 @@ Cada tecla `LOWER`/`RAISE` se mantiene; al soltarlas se sale de la capa. `ADJUST
 |---------+-----+-----+-----+-----+-----|Click |    |CtrlF |-----+-----+-----+-----+-----+------|
 |  LSFT   |  Z  |  X  |  C  |  V  |  B  |------|    |------|  N  |  M  |  ,  |  .  |  /  | RSFT |
 `---------------------------------------/      /    \      \---------------------------------------'
-          |CapsWd| WIN | LAlt |LOWER| /Space/       \Enter\ |RAISE|NUMPAD| RAlt | Menu |
+          | HYPR | WIN | LAlt |LOWER| /Space/       \Enter\ |RAISE|NUMPAD| RAlt | Menu |
           `----------------------------'             '-------''----------------------------'
 ```
 
-- `Compose` es la tecla Caps del teclado físico (`compose:caps` en Hyprland).
+- La tecla Caps física (arriba a la izquierda) es **Caps Lock** del sistema. El pulgar izquierdo ahora es **Hyper** (`KC_HYPR`, Ctrl+Shift+Alt+Super) para atajos de Hyprland.
 - `WIN` y `Enter` son `GUI_T(KC_ENT)` en ambos pulgares: pulsación corta = Enter, mantener = Super. Así `Super+Enter` funciona desde los dos lados.
 - `Ctrl+Esc` en la A (`LCTL_T(KC_ESC)`).
 
@@ -116,8 +116,6 @@ Convención: **horario = siguiente / derecha / arriba / subir**.
 
   SCAG        <- modificadores pulsados
 
-  CW ON       <- sólo con Caps Word
-
   WPM
   42
   ```
@@ -190,7 +188,7 @@ Desconecta el cable TRRS y flashea **una mitad cada vez**. Pulsa Reset cuando ap
 
 ## Límites de firmware
 
-Medición actual: **28 492 / 28 672 bytes (99,4 %, 180 libres)**, RAM **72,3 %**.
+Medición previa: **28 492 / 28 672 bytes (99,4 %, 180 libres)**, RAM **72,3 %**. Al quitar Caps Word el tamaño baja; recompilá para confirmar el número nuevo.
 El máximo es 28 672 porque el bootloader Caterina ocupa los primeros 4 KB.
 
 Para añadir código hay que liberar espacio en `config.h`. El candidato natural es dejar sólo el efecto que usas y quitar los reactivos extra:
