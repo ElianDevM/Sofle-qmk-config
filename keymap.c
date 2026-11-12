@@ -19,6 +19,9 @@
 #include QMK_KEYBOARD_H
 #include "keymap_us.h"
 
+// Omarchy: SUPER + CTRL + ENTER abre/adjunta la sesión de Herdr.
+#define KC_HERDR LGUI(LCTL(KC_ENT))
+
 enum sofle_layers { _QWERTY = 0, _LOWER, _RAISE, _ADJUST, _NUMPAD };
 
 enum custom_keycodes { KC_LOWER = SAFE_RANGE, KC_RAISE };
@@ -39,7 +42,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      * |--------+------+------+------+------+------|Middle |  |Ctrl(F)|------+------+------+------+------+------|
      * |  LSFT  |   Z  |   X  |   C  |   V  |   B  |-------|  |-------|   N  |   M  |   ,  |   .  |   /  | RSFT |
      * `-----------------------------------------/        /    \      \`-----------------------------------------/'
-     *           | HYPR | WIN | LAlt |LOWER |  / Space  /       \Enter \ |RAISE |NUMPAD| RAlt | Menu |
+     *           |HERDR | WIN | LAlt |LOWER |  / Space  /       \Enter \ |RAISE |NUMPAD| RAlt | Menu |
      *           |      |     |      |      |/       /          \      \|      |      |      |      |
      *           `----------------------------------'             '------''---------------------------'
      */
@@ -53,7 +56,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
         KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, MS_BTN3, C(KC_F), KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_RSFT,
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
-        KC_HYPR, GUI_T(KC_ENT), KC_LALT, KC_LOWER, KC_SPC, GUI_T(KC_ENT), KC_RAISE, MO(_NUMPAD), KC_RALT, KC_APP
+        KC_HERDR, GUI_T(KC_ENT), KC_LALT, KC_LOWER, KC_SPC, GUI_T(KC_ENT), KC_RAISE, MO(_NUMPAD), KC_RALT, KC_APP
         //            \--------+--------+--------+---------+-------|   |--------+---------+--------+---------+-------/
         ),
 
@@ -105,7 +108,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         //|------+-------+--------+--------+--------+------|                   |--------+-------+--------+--------+--------+---------|
         KC_TRNS, KC_LCBR, KC_RCBR, KC_LBRC, KC_RBRC, KC_ASTR, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
         //|------+-------+--------+--------+--------+------|                   |--------+-------+--------+--------+--------+---------|
-        KC_TRNS, KC_LPRN, KC_RPRN, KC_EQL, KC_PLUS, KC_MINS, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
+        KC_TRNS, KC_LPRN, KC_RPRN, KC_EQL, KC_PLUS, KC_MINS, KC_HYPR, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
         KC_TRNS, KC_BSLS, KC_PIPE, KC_LABK, KC_RABK, KC_COLN, KC_QUES, C(KC_S), KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
         //|------+-------+--------+--------+--------+------|  ===  |   |  ===  |--------+-------+--------+--------+--------+---------|
@@ -412,9 +415,9 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
                 break;
             case _NUMPAD:
                 if (clockwise) {
-                    tap_code(KC_VOLU);
-                } else {
                     tap_code(KC_VOLD);
+                } else {
+                    tap_code(KC_VOLU);
                 }
                 break;
             case _ADJUST:

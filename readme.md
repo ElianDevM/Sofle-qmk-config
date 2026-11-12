@@ -37,11 +37,11 @@ Cada tecla `LOWER`/`RAISE` se mantiene; al soltarlas se sale de la capa. `ADJUST
 |---------+-----+-----+-----+-----+-----|Click |    |CtrlF |-----+-----+-----+-----+-----+------|
 |  LSFT   |  Z  |  X  |  C  |  V  |  B  |------|    |------|  N  |  M  |  ,  |  .  |  /  | RSFT |
 `---------------------------------------/      /    \      \---------------------------------------'
-          | HYPR | WIN | LAlt |LOWER| /Space/       \Enter\ |RAISE|NUMPAD| RAlt | Menu |
+          |HERDR | WIN | LAlt |LOWER| /Space/       \Enter\ |RAISE|NUMPAD| RAlt | Menu |
           `----------------------------'             '-------''----------------------------'
 ```
 
-- La tecla Caps física (arriba a la izquierda) es **Caps Lock** del sistema. El pulgar izquierdo ahora es **Hyper** (`KC_HYPR`, Ctrl+Shift+Alt+Super) para atajos de Hyprland.
+- La tecla Caps física (arriba a la izquierda) es **Caps Lock** del sistema. El pulgar izquierdo abre **Herdr** (`Super+Ctrl+Enter`); **Hyper** (`KC_HYPR`) está en RAISE, sobre la `H`.
 - `WIN` y `Enter` son `GUI_T(KC_ENT)` en ambos pulgares: pulsación corta = Enter, mantener = Super. Así `Super+Enter` funciona desde los dos lados.
 - `Ctrl+Esc` en la A (`LCTL_T(KC_ESC)`).
 
@@ -60,7 +60,7 @@ Cada tecla `LOWER`/`RAISE` se mantiene; al soltarlas se sale de la capa. `ADJUST
 |---|---|---|
 | Números | `~ ! @ # $ %` | `^ & * ( ) _` |
 | QWERTY | `{ } [ ] *` | — |
-| Home | `( ) = + -` | — |
+| Home | `( ) = + -` | `Hyper` |
 | Z | `\ \| < > :` | — |
 
 `Ctrl+X`, `Ctrl+C` y `Ctrl+V` quedan libres: ya no se reasignan. `Tab`, `Ctrl+Esc`, `Shift` y los pulgares pasan transparentes.
