@@ -3,8 +3,8 @@
 - Archivo: `sofle_rev1_elianSofle.hex`
 - Teclado: `sofle/rev1`
 - Keymap: `elianSofle`
-- Código: el `.hex` incluido es anterior a los últimos cambios del keymap; recompilá para incluirlos.
-- Tamaño: 28 492 / 28 672 bytes (99,4 %, 180 libres) en el keymap anterior; el nuevo cambia al quitar Caps Word.
+- Código: el `.hex` incluido corresponde al keymap de este repo.
+- Tamaño: 28 046 / 28 672 bytes (97 %, 626 libres).
 - SHA256: `d6014345f6f4f9552b10ad5931390c128d61208495801033329ea65672081d3f`
 
 ## Flashear en otro equipo (sin compilar)

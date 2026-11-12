@@ -188,7 +188,7 @@ Desconecta el cable TRRS y flashea **una mitad cada vez**. Pulsa Reset cuando ap
 
 ## Límites de firmware
 
-Medición previa: **28 492 / 28 672 bytes (99,4 %, 180 libres)**, RAM **72,3 %**. Al quitar Caps Word el tamaño baja; recompilá para confirmar el número nuevo.
+Medición actual: **28 046 / 28 672 bytes (97 %, 626 libres)**.
 El máximo es 28 672 porque el bootloader Caterina ocupa los primeros 4 KB.
 
 Para añadir código hay que liberar espacio en `config.h`. El candidato natural es dejar sólo el efecto que usas y quitar los reactivos extra:
